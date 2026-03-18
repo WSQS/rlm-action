@@ -1,0 +1,23 @@
+name: test-action
+
+on:
+    workflow_dispatch:
+
+jobs:
+    test:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout action repo
+              uses: actions/checkout@v4
+
+            - name: Run local action
+              id: rlm
+              uses: ./
+              with:
+                  context: "Calculate 12 * 34"
+              env:
+                  ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+                  ANTHROPIC_BASE_URL: https://api.minimaxi.com/anthropic
+
+            - name: Show result
+              run: echo "${{ steps.rlm.outputs.result }}"
