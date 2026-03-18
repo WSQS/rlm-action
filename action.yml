@@ -1,0 +1,37 @@
+name: "Run RLM"
+description: "Run the rlm CLI with a task context"
+
+inputs:
+  context:
+    description: "Task context passed to rlm"
+    required: true
+
+outputs:
+  result:
+    description: "Final stdout from rlm"
+    value: ${{ steps.run_rlm.outputs.result }}
+
+runs:
+  using: "composite"
+  steps:
+  - name: Setup uv
+    uses: astral-sh/setup-uv@v7
+
+  - name: Install rlm
+    shell: bash
+    run: uv tool install git+https://github.com/WSQS/rlm.git
+
+  - name: Run rlm
+    id: run_rlm
+    shell: bash
+    env:
+      ANTHROPIC_API_KEY: ${{ env.ANTHROPIC_API_KEY }}
+      ANTHROPIC_BASE_URL: ${{ env.ANTHROPIC_BASE_URL }}
+    run: |
+      RESULT=$(rlm "${{ inputs.context }}" 2>&1)
+      echo "$RESULT"
+      {
+        echo "result<<EOF"
+        echo "$RESULT"
+        echo "EOF"
+      } >> "$GITHUB_OUTPUT"
