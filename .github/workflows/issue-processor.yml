@@ -119,7 +119,7 @@ jobs:
                           owner: context.repo.owner,
                           repo: context.repo.repo,
                           title: "Fix: Process issue #${{ steps.issue_info.outputs.NUMBER }}",
-                          body: "This PR addresses issue #${{ steps.issue_info.outputs.NUMBER }}\n\nRLM Output:\n```\n${{ steps.rlm.outputs.result }}\n```",
+                          body: "This PR addresses issue #${{ steps.issue_info.outputs.NUMBER }}\n\nRLM has processed the issue and made necessary code modifications. Check the Files changed tab for details.",
                           head: "rlm/issue-${{ steps.issue_info.outputs.NUMBER }}",
                           base: "main"
                         });
