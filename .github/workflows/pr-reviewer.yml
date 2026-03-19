@@ -108,10 +108,10 @@ jobs:
                   ANTHROPIC_BASE_URL: https://api.minimaxi.com/anthropic
 
             - name: Save rlm output to review_comment.md
-              run: |-
-                  cat > review_comment.md <<BODYEOF
-                  ${{ steps.rlm.outputs.result }}
-                  BODYEOF
+              env:
+                  RLM_RESULT: ${{ steps.rlm.outputs.result }}
+              run: |
+                  printf '%s' "$RLM_RESULT" > review_comment.md
 
             - name: Check for review comments
               id: review_output
