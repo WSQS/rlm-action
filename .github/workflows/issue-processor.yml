@@ -47,10 +47,14 @@ jobs:
                       return JSON.stringify(issue.data);
 
             - name: Debug issue data
-              run: |
-                  echo "Issue number: ${{ steps.issue_info.outputs.NUMBER }}"
-                  echo "Issue title: ${{ fromJson(steps.issue.outputs.result).title }}"
-                  echo "Issue body length: $(${{ steps.issue.outputs.result }} | jq -r '.body | length')"
+              uses: actions/github-script@v7
+              with:
+                  script: |
+                      const issueData = ${{ steps.issue.outputs.result }};
+                      console.log('Issue number:', '${{ steps.issue_info.outputs.NUMBER }}');
+                      console.log('Issue title:', issueData.title);
+                      console.log('Issue body:', issueData.body);
+                      console.log('Issue body length:', (issueData.body || '').length);
 
             - name: Save issue to file
               run: |
