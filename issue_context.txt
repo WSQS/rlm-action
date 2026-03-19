@@ -1,0 +1,9 @@
+[ISSUE PROCESSING]
+Issue Number: #1
+Issue File: /home/runner/work/rlm-action/rlm-action/issue_context.txt
+
+=== Issue Title ===
+Improve feedback when no code changes are generated
+
+=== Issue Description ===
+"### Description\n\nCurrently, when the RLM workflow processes an issue but does not produce any code changes, the workflow only logs `\"No changes detected\"` in the Actions output.\n\nFrom a user perspective, this creates ambiguity:\n\n* It is unclear whether the workflow actually ran successfully\n* There is no visible feedback on the issue itself\n* Users may assume the automation failed or was not triggered\n\n### Expected Behavior\n\nWhen no code changes are generated, the workflow should provide explicit feedback on the issue, for example by posting a comment such as:\n\n* “Issue processed, but no code changes were generated.”\n* “Analysis completed, but no modifications were required.”\n\nThis ensures:\n\n* Clear visibility of workflow execution\n* Better user experience for issue authors\n* Easier debugging and traceability\n\n### Proposed Solution\n\nAdd a step in the workflow that:\n\n* Detects when `has_changes == false`\n* Posts a comment to the issue via `actions/github-script` or similar\n\nExample behavior:\n\n* If changes exist → create/update PR (current behavior)\n* If no changes → comment on the issue with a summary\n\n### Additional Context\n\nThis improvement would make the automation feel more reliable and transparent, especially when used by external contributors or in larger teams.\n"
