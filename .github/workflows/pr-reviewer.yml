@@ -102,7 +102,7 @@ jobs:
               id: rlm
               uses: ./
               with:
-                  context: "You are reviewing GitHub PR #${{ steps.pr_info.outputs.NUMBER }}. The PR details are stored in the file: ${{ github.workspace }}/pr_context.txt. Please review the PR changes and provide feedback on code quality, potential issues, and suggestions. Save your review comments to the file: ${{ github.workspace }}/review_comment.md"
+                  context: "You are reviewing GitHub PR #${{ steps.pr_info.outputs.NUMBER }}. The PR details are stored in the file: ${{ github.workspace }}/pr_context.txt. Please review the PR changes and provide feedback on code quality, potential issues, and suggestions. Output your review comments as result."
                   output_file: "review_comment.md"
               env:
                   ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
