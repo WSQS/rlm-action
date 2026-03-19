@@ -37,7 +37,7 @@ jobs:
               uses: actions/github-script@v7
               id: issue
               env:
-                ISSUE_NUMBER: ${{ steps.issue_info.outputs.NUMBER }}
+                  ISSUE_NUMBER: ${{ steps.issue_info.outputs.NUMBER }}
               with:
                   script: |
                       const issue = await github.rest.issues.get({
@@ -50,13 +50,6 @@ jobs:
                         title: issue.data.title,
                         body: issue.data.body
                       };
-
-            - name: Debug issue data
-              run: |
-                  echo "Issue number: ${{ steps.issue_info.outputs.NUMBER }}"
-                  echo "Issue title: ${{ fromJson(steps.issue.outputs.result).title }}"
-                  ISSUE_BODY='${{ toJson(fromJson(steps.issue.outputs.result).body) }}'
-                  echo "Issue body: $ISSUE_BODY"
 
             - name: Save issue to file
               run: |
