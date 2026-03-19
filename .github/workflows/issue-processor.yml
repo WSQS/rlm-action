@@ -43,11 +43,23 @@ jobs:
                       });
                       return JSON.stringify(issue.data);
 
+            - name: Save issue to file
+              run: |
+                echo "[ISSUE PROCESSING]" > issue_context.txt
+                echo "Issue Number: #${{ steps.issue_info.outputs.NUMBER }}" >> issue_context.txt
+                echo "Issue File: ${{ github.workspace }}/issue_context.txt" >> issue_context.txt
+                echo "" >> issue_context.txt
+                echo "=== Issue Title ===" >> issue_context.txt
+                echo "${{ fromJson(steps.issue.outputs.result).title }}" >> issue_context.txt
+                echo "" >> issue_context.txt
+                echo "=== Issue Description ===" >> issue_context.txt
+                echo "${{ fromJson(steps.issue.outputs.result).body }}" >> issue_context.txt
+
             - name: Run rlm with issue context
               id: rlm
               uses: ./
               with:
-                  context: "Issue #${{ steps.issue_info.outputs.NUMBER }}: ${{ fromJson(steps.issue.outputs.result).title }}. Description: ${{ fromJson(steps.issue.outputs.result).body }}"
+                  context: "You are processing GitHub Issue #${{ steps.issue_info.outputs.NUMBER }}. The issue details are stored in the file: ${{ github.workspace }}/issue_context.txt. Please read the file to understand the issue and make necessary modifications to the codebase."
               env:
                   ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
                   ANTHROPIC_BASE_URL: https://api.minimaxi.com/anthropic
