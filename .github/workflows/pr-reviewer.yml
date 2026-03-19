@@ -65,28 +65,38 @@ jobs:
                       };
 
             - name: Save PR to file
-              run: |
-                  echo "[PR REVIEW]" > pr_context.txt
-                  echo "PR Number: #${{ steps.pr_info.outputs.NUMBER }}" >> pr_context.txt
-                  echo "PR File: ${{ github.workspace }}/pr_context.txt" >> pr_context.txt
-                  echo "" >> pr_context.txt
-                  echo "=== PR Title ===" >> pr_context.txt
-                  echo "${{ fromJson(steps.pr.outputs.result).title }}" >> pr_context.txt
-                  echo "" >> pr_context.txt
-                  echo "=== PR Author ===" >> pr_context.txt
-                  echo "${{ fromJson(steps.pr.outputs.result).author }}" >> pr_context.txt
-                  echo "" >> pr_context.txt
-                  echo "=== PR Description ===" >> pr_context.txt
-                  echo '${{ toJson(fromJson(steps.pr.outputs.result).body) }}' >> pr_context.txt
-                  echo "" >> pr_context.txt
-                  echo "=== Base Branch ===" >> pr_context.txt
-                  echo "${{ fromJson(steps.pr.outputs.result).baseBranch }}" >> pr_context.txt
-                  echo "" >> pr_context.txt
-                  echo "=== Head Branch ===" >> pr_context.txt
-                  echo "${{ fromJson(steps.pr.outputs.result).headBranch }}" >> pr_context.txt
-                  echo "" >> pr_context.txt
-                  echo "=== PR Diff ===" >> pr_context.txt
-                  echo '${{ toJson(fromJson(steps.pr.outputs.result).diff) }}' >> pr_context.txt
+              env:
+                  PR_NUMBER: ${{ steps.pr_info.outputs.NUMBER }}
+                  PR_TITLE: ${{ fromJson(steps.pr.outputs.result).title }}
+                  PR_AUTHOR: ${{ fromJson(steps.pr.outputs.result).author }}
+                  PR_BODY: ${{ fromJson(steps.pr.outputs.result).body }}
+                  PR_BASE: ${{ fromJson(steps.pr.outputs.result).baseBranch }}
+                  PR_HEAD: ${{ fromJson(steps.pr.outputs.result).headBranch }}
+                  PR_DIFF: ${{ fromJson(steps.pr.outputs.result).diff }}
+              run: |-
+                  cat > pr_context.txt <<BODYEOF
+                  [PR REVIEW]
+                  PR Number: #${PR_NUMBER}
+                  PR File: ${{ github.workspace }}/pr_context.txt
+
+                  === PR Title ===
+                  ${PR_TITLE}
+
+                  === PR Author ===
+                  ${PR_AUTHOR}
+
+                  === PR Description ===
+                  ${PR_BODY}
+
+                  === Base Branch ===
+                  ${PR_BASE}
+
+                  === Head Branch ===
+                  ${PR_HEAD}
+
+                  === PR Diff ===
+                  ${PR_DIFF}
+                  BODYEOF
 
             - name: Run rlm to review PR
               id: rlm
