@@ -50,7 +50,7 @@ jobs:
               uses: actions/github-script@v7
               with:
                   script: |
-                      const issueData = ${{ steps.issue.outputs.result }};
+                      const issueData = JSON.parse('${{ steps.issue.outputs.result }}');
                       console.log('Issue number:', '${{ steps.issue_info.outputs.NUMBER }}');
                       console.log('Issue title:', issueData.title);
                       console.log('Issue body:', issueData.body);
