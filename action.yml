@@ -5,6 +5,9 @@ inputs:
   context:
     description: "Task context passed to rlm"
     required: true
+  output_file:
+    description: "Optional output file path for rlm results"
+    required: false
 
 outputs:
   result:
@@ -28,7 +31,11 @@ runs:
       ANTHROPIC_API_KEY: ${{ env.ANTHROPIC_API_KEY }}
       ANTHROPIC_BASE_URL: ${{ env.ANTHROPIC_BASE_URL }}
     run: |
-      RESULT=$(rlm "${{ inputs.context }}" 2>&1)
+      if [ -n "${{ inputs.output_file }}" ]; then
+        RESULT=$(rlm -o "${{ inputs.output_file }}" "${{ inputs.context }}" 2>&1)
+      else
+        RESULT=$(rlm "${{ inputs.context }}" 2>&1)
+      fi
       echo "$RESULT"
       {
         echo "result<<EOF"
