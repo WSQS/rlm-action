@@ -76,10 +76,11 @@ jobs:
 
             - name: Push changes
               if: steps.changes.outputs.has_changes == 'true'
-              uses: aditieshprakash/push-branch@v1
-              with:
-                  branch: "rlm/issue-${{ steps.issue_info.outputs.NUMBER }}"
-                  force: false
+              env:
+                GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: |
+                branch_name="rlm/issue-${{ steps.issue_info.outputs.NUMBER }}"
+                git push -u origin "$branch_name"
 
             - name: Create or update PR
               if: steps.changes.outputs.has_changes == 'true'
