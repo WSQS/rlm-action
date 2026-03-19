@@ -49,26 +49,23 @@ jobs:
             - name: Debug issue data
               run: |
                   echo "Issue number: ${{ steps.issue_info.outputs.NUMBER }}"
-                  echo "Issue data: ${{ steps.issue.outputs.result }}"
+                  echo "Issue data length: ${#ISSUE_DATA}"
+                  echo "Issue has title: $(echo '${{ steps.issue.outputs.result }}' | jq -r '.title != null')"
 
             - name: Save issue to file
               run: |
-                  ISSUE_DATA='${{ steps.issue.outputs.result }}'
-                  ISSUE_TITLE=$(echo "$ISSUE_DATA" | jq -r '.title // empty')
-                  ISSUE_BODY=$(echo "$ISSUE_DATA" | jq -r '.body // empty')
-                  
-                  echo "[ISSUE PROCESSING]" > issue_context.txt
-                  echo "Issue Number: #${{ steps.issue_info.outputs.NUMBER }}" >> issue_context.txt
-                  echo "Issue File: ${{ github.workspace }}/issue_context.txt" >> issue_context.txt
-                  echo "" >> issue_context.txt
-                  echo "=== Issue Title ===" >> issue_context.txt
-                  echo "${ISSUE_TITLE:-No title}" >> issue_context.txt
-                  echo "" >> issue_context.txt
-                  echo "=== Issue Description ===" >> issue_context.txt
-                  echo "${ISSUE_BODY:-No description}" >> issue_context.txt
-                  echo "" >> issue_context.txt
-                  echo "=== Raw Issue Data ===" >> issue_context.txt
-                  echo "$ISSUE_DATA" >> issue_context.txt
+                  printf '%s\n' "[ISSUE PROCESSING]" \
+                      "Issue Number: #${{ steps.issue_info.outputs.NUMBER }}" \
+                      "Issue File: ${{ github.workspace }}/issue_context.txt" \
+                      "" \
+                      "=== Issue Title ===" \
+                      "${{ fromJson(steps.issue.outputs.result).title }}" \
+                      "" \
+                      "=== Issue Description ===" \
+                      "${{ fromJson(steps.issue.outputs.result).body }}" \
+                      "" \
+                      "=== Raw Issue Data ===" \
+                      "${{ steps.issue.outputs.result }}" > issue_context.txt
 
             - name: Run rlm with issue context
               id: rlm
