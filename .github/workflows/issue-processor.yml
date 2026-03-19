@@ -49,8 +49,8 @@ jobs:
             - name: Debug issue data
               run: |
                   echo "Issue number: ${{ steps.issue_info.outputs.NUMBER }}"
-                  echo "Issue data length: ${#ISSUE_DATA}"
-                  echo "Issue has title: $(echo '${{ steps.issue.outputs.result }}' | jq -r '.title != null')"
+                  echo "Issue title: ${{ fromJson(steps.issue.outputs.result).title }}"
+                  echo "Issue body length: $(${{ steps.issue.outputs.result }} | jq -r '.body | length')"
 
             - name: Save issue to file
               run: |
@@ -62,10 +62,7 @@ jobs:
                       "${{ fromJson(steps.issue.outputs.result).title }}" \
                       "" \
                       "=== Issue Description ===" \
-                      "${{ fromJson(steps.issue.outputs.result).body }}" \
-                      "" \
-                      "=== Raw Issue Data ===" \
-                      "${{ steps.issue.outputs.result }}" > issue_context.txt
+                      "${{ fromJson(steps.issue.outputs.result).body }}" > issue_context.txt
 
             - name: Run rlm with issue context
               id: rlm
