@@ -46,15 +46,15 @@ jobs:
 
             - name: Save issue to file
               run: |
-                echo "[ISSUE PROCESSING]" > issue_context.txt
-                echo "Issue Number: #${{ steps.issue_info.outputs.NUMBER }}" >> issue_context.txt
-                echo "Issue File: ${{ github.workspace }}/issue_context.txt" >> issue_context.txt
-                echo "" >> issue_context.txt
-                echo "=== Issue Title ===" >> issue_context.txt
-                echo "${{ fromJson(steps.issue.outputs.result).title }}" >> issue_context.txt
-                echo "" >> issue_context.txt
-                echo "=== Issue Description ===" >> issue_context.txt
-                echo "${{ fromJson(steps.issue.outputs.result).body }}" >> issue_context.txt
+                  echo "[ISSUE PROCESSING]" > issue_context.txt
+                  echo "Issue Number: #${{ steps.issue_info.outputs.NUMBER }}" >> issue_context.txt
+                  echo "Issue File: ${{ github.workspace }}/issue_context.txt" >> issue_context.txt
+                  echo "" >> issue_context.txt
+                  echo "=== Issue Title ===" >> issue_context.txt
+                  echo "${{ fromJson(steps.issue.outputs.result).title }}" >> issue_context.txt
+                  echo "" >> issue_context.txt
+                  echo "=== Issue Description ===" >> issue_context.txt
+                  echo "${{ fromJson(steps.issue.outputs.result).body }}" >> issue_context.txt
 
             - name: Run rlm with issue context
               id: rlm
@@ -90,10 +90,10 @@ jobs:
             - name: Push changes
               if: steps.changes.outputs.has_changes == 'true'
               env:
-                GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               run: |
-                branch_name="rlm/issue-${{ steps.issue_info.outputs.NUMBER }}"
-                git push -u origin "$branch_name"
+                  branch_name="rlm/issue-${{ steps.issue_info.outputs.NUMBER }}"
+                  git push -u origin "$branch_name"
 
             - name: Create or update PR
               if: steps.changes.outputs.has_changes == 'true'
