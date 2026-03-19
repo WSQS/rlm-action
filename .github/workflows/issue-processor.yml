@@ -55,7 +55,8 @@ jobs:
               run: |
                   echo "Issue number: ${{ steps.issue_info.outputs.NUMBER }}"
                   echo "Issue title: ${{ fromJson(steps.issue.outputs.result).title }}"
-                  echo "Issue body length: $(${{ steps.issue.outputs.result }} | jq -r '.body | length')"
+                  ISSUE_BODY=${{ toJson(fromJson(steps.issue.outputs.result).body) }}
+                  echo "Issue body: $ISSUE_BODY"
 
             - name: Save issue to file
               run: |
