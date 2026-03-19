@@ -21,6 +21,7 @@ jobs:
             - name: Checkout repository
               uses: actions/checkout@v6
               with:
+                  token: ${{ secrets.WORKFLOW_PUSH_TOKEN }}
                   fetch-depth: 0
 
             - name: Determine issue number
@@ -90,7 +91,7 @@ jobs:
             - name: Push changes
               if: steps.changes.outputs.has_changes == 'true'
               env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  GITHUB_TOKEN: ${{ secrets.WORKFLOW_PUSH_TOKEN }}
               run: |
                   branch_name="rlm/issue-${{ steps.issue_info.outputs.NUMBER }}"
                   git push -u origin "$branch_name"
