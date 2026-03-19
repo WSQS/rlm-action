@@ -68,7 +68,7 @@ jobs:
                   echo "${{ fromJson(steps.issue.outputs.result).title }}" >> issue_context.txt
                   echo "" >> issue_context.txt
                   echo "=== Issue Description ===" >> issue_context.txt
-                  echo "${{ fromJson(steps.issue.outputs.result).body }}" >> issue_context.txt
+                  echo '${{ toJson(fromJson(steps.issue.outputs.result).body) }}' >> issue_context.txt
 
             - name: Run rlm with issue context
               id: rlm
