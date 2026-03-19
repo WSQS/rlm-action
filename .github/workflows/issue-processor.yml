@@ -115,9 +115,9 @@ jobs:
               uses: actions/github-script@v7
               with:
                   script: |
-                      await github.rest.reactions.createIssueReaction({
+                      await github.rest.reactions.createForIssue({
                         owner: context.repo.owner,
                         repo: context.repo.repo,
                         issue_number: ${{ steps.issue_info.outputs.NUMBER }},
-                        reaction: '+1'
+                        content: '+1'
                       });
