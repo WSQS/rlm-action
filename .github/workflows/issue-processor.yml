@@ -17,6 +17,7 @@ jobs:
       contents: write
       pull-requests: write
       actions: write
+      issues: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
@@ -99,6 +100,24 @@ jobs:
             git diff --stat
           fi
 
+      - name: Post comment when no changes
+        if: steps.changes.outputs.has_changes == 'false'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.WORKFLOW_PUSH_TOKEN }}
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: ${{ steps.issue_info.outputs.NUMBER }},
+              body: '## 🤖 RLM Analysis Complete\n\n' +
+                    'Thank you for submitting this issue!\n\n' +
+                    'I\'ve analyzed the issue and processed it, but no code changes were required or generated at this time. ' +
+                    'This could mean:\n' +
+                    '• The existing codebase already addresses the concern\n' +
+                    '• The issue requires manual review or discussion before implementation\n\n' +
+                    'The workflow has executed successfully. Feel free to provide more details if you believe changes are needed.'
+            });
       - name: Create branch and commit
         if: steps.changes.outputs.has_changes == 'true'
         run: |
