@@ -16,6 +16,7 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
+      issues: write
       actions: write
     steps:
       - name: Checkout repository
@@ -97,23 +98,52 @@ jobs:
             git diff --stat
           fi
 
+      - name: Post comment when no changes
+        if: steps.changes.outputs.has_changes == 'false'
+        uses: actions/github-script@v7
+        env:
+          ISSUE_NUMBER: ${{ steps.issue_info.outputs.NUMBER }}
+          RLM_OUTPUT: ${{ steps.rlm_output.outputs.content }}
+        with:
+          github-token: ${{ secrets.WORKFLOW_PUSH_TOKEN }}
+          script: |
+            const issueNumber = process.env.ISSUE_NUMBER;
+            const rlmOutput = process.env.RLM_OUTPUT || 'No output available.';
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: parseInt(issueNumber),
+              body: `## Issue Processed - No Changes Required
+
+` +
+                    `Thank you for submitting this issue! I've analyzed it and determined that no code modifications were necessary.
+
+` +
+                    `### Analysis Summary
+
+` +
+                    `The issue has been thoroughly reviewed, but the current codebase already addresses the requirements or no changes were needed.
+
+` +
+                    `### RLM Output
+
+` +
+                    '```\n' + rlmOutput + '\n```\n
+' +
+                    `If you believe this is incorrect, please feel free to provide more details or reopen the issue.`
+            });
+
       - name: Create branch and commit
         if: steps.changes.outputs.has_changes == 'true'
         run: |
           branch_name="rlm/issue-${{ steps.issue_info.outputs.NUMBER }}"
           git checkout -b "$branch_name"
           git add -A
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git commit -m "Process issue #${{ steps.issue_info.outputs.NUMBER }} via RLM"
-
-      - name: Push changes
-        if: steps.changes.outputs.has_changes == 'true'
+          git commit -m "Process issue #${{ steps.issue_info.outputs.NUMBER }}"
+          git push -u origin "$branch_name" --force
         env:
           GITHUB_TOKEN: ${{ secrets.WORKFLOW_PUSH_TOKEN }}
-        run: |
-          branch_name="rlm/issue-${{ steps.issue_info.outputs.NUMBER }}"
-          git push -u origin "$branch_name"
 
       - name: Create or update PR
         if: steps.changes.outputs.has_changes == 'true'
