@@ -77,10 +77,11 @@ jobs:
         id: rlm_output
         run: |
           if [ -f "rlm_output.txt" ]; then
-            output_content=$(cat rlm_output.txt)
-            # Escape newlines for JSON
-            output_content="${output_content//$'\n'/\\n}"
-            echo "content=$output_content" >> $GITHUB_OUTPUT
+            {
+              echo 'content<<__RLM_OUTPUT__'
+              cat rlm_output.txt
+              echo '__RLM_OUTPUT__'
+            } >> $GITHUB_OUTPUT
           else
             echo "content=" >> $GITHUB_OUTPUT
           fi
