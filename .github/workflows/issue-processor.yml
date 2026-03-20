@@ -152,7 +152,7 @@ jobs:
                 body:
                   `This PR addresses issue #${issueNumber}\n\n` +
                   `## RLM Output\n` +
-                  '```\n' + rlmOutput + '\n```\n\n' +
+                  '\n' + rlmOutput + '\n' +
                   'RLM has processed the issue and made necessary code modifications. Check the Files changed tab for details.',
                 head: `rlm/issue-${issueNumber}`,
                 base: 'master'
