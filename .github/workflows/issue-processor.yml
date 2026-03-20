@@ -118,31 +118,44 @@ jobs:
             - name: Create or update PR
               if: steps.changes.outputs.has_changes == 'true'
               uses: actions/github-script@v7
+              env:
+                  RLM_OUTPUT: ${{ steps.rlm_output.outputs.content }}
+                  ISSUE_NUMBER: ${{ steps.issue_info.outputs.NUMBER }}
               with:
                   github-token: ${{ secrets.WORKFLOW_PUSH_TOKEN }}
                   script: |
+                      const issueNumber = process.env.ISSUE_NUMBER;
+                      const rlmOutput = process.env.RLM_OUTPUT || '';
+
                       const { data: prs } = await github.rest.pulls.list({
                         owner: context.repo.owner,
                         repo: context.repo.repo,
-                        head: "rlm/issue-${{ steps.issue_info.outputs.NUMBER }}"
+                        head: `rlm/issue-${issueNumber}`
                       });
-                      const rlmOutput = `${{ steps.rlm_output.outputs.content }}`;
 
                       if (prs.length > 0) {
                         await github.rest.pulls.update({
                           owner: context.repo.owner,
                           repo: context.repo.repo,
                           pull_number: prs[0].number,
-                          body: "This PR addresses issue #${{ steps.issue_info.outputs.NUMBER }}\n\n## RLM Output\n```\n" + rlmOutput + "\n```\n\nCloses #${{ steps.issue_info.outputs.NUMBER }}"
+                          body:
+                            `This PR addresses issue #${issueNumber}\n\n` +
+                            `## RLM Output\n` +
+                            '```\n' + rlmOutput + '\n```\n\n' +
+                            `Closes #${issueNumber}`
                         });
                       } else {
                         await github.rest.pulls.create({
                           owner: context.repo.owner,
                           repo: context.repo.repo,
-                          title: "Fix: Process issue #${{ steps.issue_info.outputs.NUMBER }}",
-                          body: "This PR addresses issue #${{ steps.issue_info.outputs.NUMBER }}\n\n## RLM Output\n```\n" + rlmOutput + "\n```\n\nRLM has processed the issue and made necessary code modifications. Check the Files changed tab for details.",
-                          head: "rlm/issue-${{ steps.issue_info.outputs.NUMBER }}",
-                          base: "master"
+                          title: `Fix: Process issue #${issueNumber}`,
+                          body:
+                            `This PR addresses issue #${issueNumber}\n\n` +
+                            `## RLM Output\n` +
+                            '```\n' + rlmOutput + '\n```\n\n' +
+                            'RLM has processed the issue and made necessary code modifications. Check the Files changed tab for details.',
+                          head: `rlm/issue-${issueNumber}`,
+                          base: 'master'
                         });
                       }
 
