@@ -17,6 +17,7 @@ jobs:
       contents: write
       pull-requests: write
       actions: write
+      issues: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
@@ -168,6 +169,22 @@ jobs:
                 base: 'master'
               });
             }
+
+      - name: Post comment when no changes
+        if: steps.changes.outputs.has_changes == 'false'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.WORKFLOW_PUSH_TOKEN }}
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: ${{ steps.issue_info.outputs.NUMBER }},
+              body: '## Issue Processed - No Code Changes Generated\n\n' +
+                    'The issue has been analyzed, but no code modifications were required.\n\n' +
+                    'If you believe this is incorrect or have additional context to provide, ' +
+                    'please feel free to reopen this issue.'
+            });
 
       - name: Add reaction to issue
         uses: actions/github-script@v7

@@ -1,0 +1,26 @@
+
+Successfully resolved GitHub Issue #1: "Improve feedback when no code changes are generated"
+
+**Changes made to `.github/workflows/issue-processor.yml`:**
+
+1. **Added `issues: write` permission** - Required to allow posting comments on issues.
+
+2. **Added new step "Post comment when no changes"** - A conditional step that executes when `has_changes == 'false'`. It posts a comment to the issue via `actions/github-script` with the following message:
+
+```
+## Issue Processed - No Code Changes Generated
+
+The issue has been analyzed, but no code modifications were required.
+
+If you believe this is incorrect or have additional context to provide, 
+please feel free to reopen this issue.
+```
+
+**New workflow behavior:**
+- If changes exist → Create/update PR (existing behavior, unchanged)
+- If no changes → Comment on the issue with a summary (NEW)
+
+This addresses all requirements from the issue:
+- ✓ Clear visibility of workflow execution
+- ✓ Better user experience for issue authors  
+- ✓ Easier debugging and traceability
