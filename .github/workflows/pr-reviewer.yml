@@ -108,6 +108,13 @@ jobs:
                   ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
                   ANTHROPIC_BASE_URL: https://api.minimaxi.com/anthropic
 
+            - name: Upload logs
+              if: always()
+              uses: actions/upload-artifact@v4
+              with:
+                  name: rlm-logs-pr-${{ steps.pr_info.outputs.NUMBER }}
+                  path: .rlm/
+
             - name: Check for review comments
               id: review_output
               run: |
@@ -145,10 +152,3 @@ jobs:
                         issue_number: ${{ steps.pr_info.outputs.NUMBER }},
                         content: '+1'
                       });
-
-            - name: Upload logs
-              if: always()
-              uses: actions/upload-artifact@v4
-              with:
-                  name: rlm-logs-pr-${{ steps.pr_info.outputs.NUMBER }}
-                  path: .rlm/
