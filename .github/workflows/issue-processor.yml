@@ -75,10 +75,11 @@ jobs:
 
       - name: Upload logs
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: rlm-logs-pr-${{ steps.issue_info.outputs.NUMBER }}
           path: .rlm/
+          include-hidden-files: true
 
       - name: Read rlm output
         id: rlm_output
