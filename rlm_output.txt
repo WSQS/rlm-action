@@ -1,0 +1,21 @@
+
+Successfully implemented the fix for GitHub Issue #1: "Improve feedback when no code changes are generated"
+
+**Changes made to `.github/workflows/issue-processor.yml`:**
+
+1. **Added `issues: write` permission** (line 19) - Required to allow posting comments on issues.
+
+2. **Added new step "Post comment when no changes"** (lines 102-124):
+   - Runs only when `steps.changes.outputs.has_changes == 'false'`
+   - Uses `actions/github-script@v7` to post a comment on the issue
+   - Posts a well-formatted comment containing:
+     - Header: "## RLM Analysis Complete"
+     - Status: "No code changes were generated."
+     - Explanation: "The issue has been analyzed, but no modifications to the codebase were required."
+     - Analysis Summary: The full RLM output in a code block
+
+**Result:**
+- When RLM generates changes → Creates/updates a PR (existing behavior)
+- When RLM doesn't generate changes → Posts a comment on the issue with analysis summary (new behavior)
+
+This ensures clear visibility of workflow execution, better user experience for issue authors, and easier debugging and traceability.
