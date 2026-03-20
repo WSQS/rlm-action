@@ -1,172 +1,172 @@
 name: rlm-issue-processor
 
 on:
-    issues:
-        types: [opened, reopened]
-    workflow_dispatch:
-        inputs:
-            issue_number:
-                description: "Issue number to process"
-                required: true
-                type: number
+  issues:
+    types: [opened, reopened]
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: "Issue number to process"
+        required: true
+        type: number
 
 jobs:
-    process-issue:
-        runs-on: ubuntu-latest
-        permissions:
-            contents: write
-            pull-requests: write
-            actions: write
-        steps:
-            - name: Checkout repository
-              uses: actions/checkout@v6
-              with:
-                  token: ${{ secrets.WORKFLOW_PUSH_TOKEN }}
-                  fetch-depth: 0
+  process-issue:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      actions: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          token: ${{ secrets.WORKFLOW_PUSH_TOKEN }}
+          fetch-depth: 0
 
-            - name: Determine issue number
-              id: issue_info
-              run: |
-                  if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-                    echo "NUMBER=${{ inputs.issue_number }}" >> $GITHUB_OUTPUT
-                  else
-                    echo "NUMBER=${{ github.event.issue.number }}" >> $GITHUB_OUTPUT
-                  fi
+      - name: Determine issue number
+        id: issue_info
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "NUMBER=${{ inputs.issue_number }}" >> $GITHUB_OUTPUT
+          else
+            echo "NUMBER=${{ github.event.issue.number }}" >> $GITHUB_OUTPUT
+          fi
 
-            - name: Get issue details
-              uses: actions/github-script@v7
-              id: issue
-              env:
-                  ISSUE_NUMBER: ${{ steps.issue_info.outputs.NUMBER }}
-              with:
-                  script: |
-                      const issue = await github.rest.issues.get({
-                        owner: context.repo.owner,
-                        repo: context.repo.repo,
-                        issue_number: parseInt(process.env.ISSUE_NUMBER)
-                      });
-                      // Return object directly - GitHub Actions will serialize it as JSON
-                      return {
-                        title: issue.data.title,
-                        body: issue.data.body
-                      };
+      - name: Get issue details
+        uses: actions/github-script@v7
+        id: issue
+        env:
+          ISSUE_NUMBER: ${{ steps.issue_info.outputs.NUMBER }}
+        with:
+          script: |
+            const issue = await github.rest.issues.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: parseInt(process.env.ISSUE_NUMBER)
+            });
+            // Return object directly - GitHub Actions will serialize it as JSON
+            return {
+              title: issue.data.title,
+              body: issue.data.body
+            };
 
-            - name: Save issue to file
-              run: |
-                  echo "[ISSUE PROCESSING]" > issue_context.txt
-                  echo "Issue Number: #${{ steps.issue_info.outputs.NUMBER }}" >> issue_context.txt
-                  echo "Issue File: ${{ github.workspace }}/issue_context.txt" >> issue_context.txt
-                  echo "" >> issue_context.txt
-                  echo "=== Issue Title ===" >> issue_context.txt
-                  echo "${{ fromJson(steps.issue.outputs.result).title }}" >> issue_context.txt
-                  echo "" >> issue_context.txt
-                  echo "=== Issue Description ===" >> issue_context.txt
-                  echo '${{ toJson(fromJson(steps.issue.outputs.result).body) }}' >> issue_context.txt
+      - name: Save issue to file
+        run: |
+          echo "[ISSUE PROCESSING]" > issue_context.txt
+          echo "Issue Number: #${{ steps.issue_info.outputs.NUMBER }}" >> issue_context.txt
+          echo "Issue File: ${{ github.workspace }}/issue_context.txt" >> issue_context.txt
+          echo "" >> issue_context.txt
+          echo "=== Issue Title ===" >> issue_context.txt
+          echo "${{ fromJson(steps.issue.outputs.result).title }}" >> issue_context.txt
+          echo "" >> issue_context.txt
+          echo "=== Issue Description ===" >> issue_context.txt
+          echo '${{ toJson(fromJson(steps.issue.outputs.result).body) }}' >> issue_context.txt
 
-            - name: Run rlm with issue context
-              id: rlm
-              uses: ./
-              with:
-                  context: "You are processing GitHub Issue #${{ steps.issue_info.outputs.NUMBER }}. The issue details are stored in the file: ${{ github.workspace }}/issue_context.txt. Please read the file to understand the issue and make necessary modifications to the codebase."
-                  output_file: "rlm_output.txt"
-              env:
-                  ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-                  ANTHROPIC_BASE_URL: https://api.minimaxi.com/anthropic
+      - name: Run rlm with issue context
+        id: rlm
+        uses: ./
+        with:
+          context: "You are processing GitHub Issue #${{ steps.issue_info.outputs.NUMBER }}. The issue details are stored in the file: ${{ github.workspace }}/issue_context.txt. Please read the file to understand the issue and make necessary modifications to the codebase."
+          output_file: "rlm_output.txt"
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          ANTHROPIC_BASE_URL: https://api.minimaxi.com/anthropic
 
-            - name: Read rlm output
-              id: rlm_output
-              run: |
-                  if [ -f "rlm_output.txt" ]; then
-                    output_content=$(cat rlm_output.txt)
-                    # Escape newlines for JSON
-                    output_content="${output_content//$'\n'/\\n}"
-                    echo "content=$output_content" >> $GITHUB_OUTPUT
-                  else
-                    echo "content=" >> $GITHUB_OUTPUT
-                  fi
+      - name: Read rlm output
+        id: rlm_output
+        run: |
+          if [ -f "rlm_output.txt" ]; then
+            output_content=$(cat rlm_output.txt)
+            # Escape newlines for JSON
+            output_content="${output_content//$'\n'/\\n}"
+            echo "content=$output_content" >> $GITHUB_OUTPUT
+          else
+            echo "content=" >> $GITHUB_OUTPUT
+          fi
 
-            - name: Check for changes
-              id: changes
-              run: |
-                  if git diff --quiet; then
-                    echo "has_changes=false" >> $GITHUB_OUTPUT
-                    echo "No changes detected"
-                  else
-                    echo "has_changes=true" >> $GITHUB_OUTPUT
-                    echo "Changes detected"
-                    git diff --stat
-                  fi
+      - name: Check for changes
+        id: changes
+        run: |
+          if git diff --quiet; then
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+            echo "No changes detected"
+          else
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+            echo "Changes detected"
+            git diff --stat
+          fi
 
-            - name: Create branch and commit
-              if: steps.changes.outputs.has_changes == 'true'
-              run: |
-                  branch_name="rlm/issue-${{ steps.issue_info.outputs.NUMBER }}"
-                  git checkout -b "$branch_name"
-                  git add -A
-                  git config user.name "github-actions[bot]"
-                  git config user.email "github-actions[bot]@users.noreply.github.com"
-                  git commit -m "Process issue #${{ steps.issue_info.outputs.NUMBER }} via RLM"
+      - name: Create branch and commit
+        if: steps.changes.outputs.has_changes == 'true'
+        run: |
+          branch_name="rlm/issue-${{ steps.issue_info.outputs.NUMBER }}"
+          git checkout -b "$branch_name"
+          git add -A
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git commit -m "Process issue #${{ steps.issue_info.outputs.NUMBER }} via RLM"
 
-            - name: Push changes
-              if: steps.changes.outputs.has_changes == 'true'
-              env:
-                  GITHUB_TOKEN: ${{ secrets.WORKFLOW_PUSH_TOKEN }}
-              run: |
-                  branch_name="rlm/issue-${{ steps.issue_info.outputs.NUMBER }}"
-                  git push -u origin "$branch_name"
+      - name: Push changes
+        if: steps.changes.outputs.has_changes == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.WORKFLOW_PUSH_TOKEN }}
+        run: |
+          branch_name="rlm/issue-${{ steps.issue_info.outputs.NUMBER }}"
+          git push -u origin "$branch_name"
 
-            - name: Create or update PR
-              if: steps.changes.outputs.has_changes == 'true'
-              uses: actions/github-script@v7
-              env:
-                  RLM_OUTPUT: ${{ steps.rlm_output.outputs.content }}
-                  ISSUE_NUMBER: ${{ steps.issue_info.outputs.NUMBER }}
-              with:
-                  github-token: ${{ secrets.WORKFLOW_PUSH_TOKEN }}
-                  script: |
-                      const issueNumber = process.env.ISSUE_NUMBER;
-                      const rlmOutput = process.env.RLM_OUTPUT || '';
+      - name: Create or update PR
+        if: steps.changes.outputs.has_changes == 'true'
+        uses: actions/github-script@v7
+        env:
+          RLM_OUTPUT: ${{ steps.rlm_output.outputs.content }}
+          ISSUE_NUMBER: ${{ steps.issue_info.outputs.NUMBER }}
+        with:
+          github-token: ${{ secrets.WORKFLOW_PUSH_TOKEN }}
+          script: |
+            const issueNumber = process.env.ISSUE_NUMBER;
+            const rlmOutput = process.env.RLM_OUTPUT || '';
 
-                      const { data: prs } = await github.rest.pulls.list({
-                        owner: context.repo.owner,
-                        repo: context.repo.repo,
-                        head: `rlm/issue-${issueNumber}`
-                      });
+            const { data: prs } = await github.rest.pulls.list({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              head: `rlm/issue-${issueNumber}`
+            });
 
-                      if (prs.length > 0) {
-                        await github.rest.pulls.update({
-                          owner: context.repo.owner,
-                          repo: context.repo.repo,
-                          pull_number: prs[0].number,
-                          body:
-                            `This PR addresses issue #${issueNumber}\n\n` +
-                            `## RLM Output\n` +
-                            '```\n' + rlmOutput + '\n```\n\n' +
-                            `Closes #${issueNumber}`
-                        });
-                      } else {
-                        await github.rest.pulls.create({
-                          owner: context.repo.owner,
-                          repo: context.repo.repo,
-                          title: `Fix: Process issue #${issueNumber}`,
-                          body:
-                            `This PR addresses issue #${issueNumber}\n\n` +
-                            `## RLM Output\n` +
-                            '```\n' + rlmOutput + '\n```\n\n' +
-                            'RLM has processed the issue and made necessary code modifications. Check the Files changed tab for details.',
-                          head: `rlm/issue-${issueNumber}`,
-                          base: 'master'
-                        });
-                      }
+            if (prs.length > 0) {
+              await github.rest.pulls.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: prs[0].number,
+                body:
+                  `This PR addresses issue #${issueNumber}\n\n` +
+                  `## RLM Output\n` +
+                  '```\n' + rlmOutput + '\n```\n\n' +
+                  `Closes #${issueNumber}`
+              });
+            } else {
+              await github.rest.pulls.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: `Fix: Process issue #${issueNumber}`,
+                body:
+                  `This PR addresses issue #${issueNumber}\n\n` +
+                  `## RLM Output\n` +
+                  '```\n' + rlmOutput + '\n```\n\n' +
+                  'RLM has processed the issue and made necessary code modifications. Check the Files changed tab for details.',
+                head: `rlm/issue-${issueNumber}`,
+                base: 'master'
+              });
+            }
 
-            - name: Add reaction to issue
-              uses: actions/github-script@v7
-              with:
-                  github-token: ${{ secrets.WORKFLOW_PUSH_TOKEN }}
-                  script: |
-                      await github.rest.reactions.createForIssue({
-                        owner: context.repo.owner,
-                        repo: context.repo.repo,
-                        issue_number: ${{ steps.issue_info.outputs.NUMBER }},
-                        content: '+1'
-                      });
+      - name: Add reaction to issue
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.WORKFLOW_PUSH_TOKEN }}
+          script: |
+            await github.rest.reactions.createForIssue({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: ${{ steps.issue_info.outputs.NUMBER }},
+              content: '+1'
+            });
