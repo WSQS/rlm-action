@@ -2,7 +2,7 @@ name: rlm-pr-reviewer
 
 on:
     pull_request:
-        types: [opened, reopened]
+        types: [opened, reopened, synchronize]
     workflow_dispatch:
         inputs:
             pr_number:
