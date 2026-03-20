@@ -80,6 +80,7 @@ jobs:
             {
               echo 'content<<__RLM_OUTPUT__'
               cat rlm_output.txt
+              printf '\n'
               echo '__RLM_OUTPUT__'
             } >> $GITHUB_OUTPUT
           else
