@@ -32,13 +32,7 @@ runs:
       ANTHROPIC_BASE_URL: ${{ env.ANTHROPIC_BASE_URL }}
     run: |
       if [ -n "${{ inputs.output_file }}" ]; then
-        RESULT=$(rlm -o "${{ inputs.output_file }}" "${{ inputs.context }}" 2>&1)
+        rlm -o "${{ inputs.output_file }}" "${{ inputs.context }}" 2>&1
       else
-        RESULT=$(rlm "${{ inputs.context }}" 2>&1)
+        rlm "${{ inputs.context }}" 2>&1
       fi
-      echo "$RESULT"
-      {
-        echo "result<<EOF"
-        echo "$RESULT"
-        echo "EOF"
-      } >> "$GITHUB_OUTPUT"
